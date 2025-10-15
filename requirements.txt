@@ -1,0 +1,14 @@
+# --- Backend Framework ---
+fastapi
+uvicorn[standard]
+pydantic
+
+# --- Core Quant & Data Libraries ---
+pandas
+numpy
+statsmodels
+yfinance
+backtrader
+
+# --- Utilities ---
+python-dotenv
