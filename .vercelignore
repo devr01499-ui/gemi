@@ -1,0 +1,27 @@
+# Exclude virtual environment
+venv/
+
+# Exclude Git repository
+.git/
+.gitignore
+
+# Exclude Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Exclude IDE files
+.vscode/
+.idea/
+
+# Exclude logs and temporary files
+*.log
+*.tmp
+
+# Exclude OS files
+.DS_Store
+Thumbs.db
+
+# Exclude documentation if not needed in deployment
+# README.md  # Uncomment if you want to exclude README from deployment

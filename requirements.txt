@@ -8,7 +8,6 @@ pandas
 numpy
 statsmodels
 yfinance
-backtrader
 
 # --- Utilities ---
 python-dotenv
