@@ -57,17 +57,12 @@ class PairsTradingStrategy(bt.Strategy):
                 self.close(data=self.datas[0])
                 self.close(data=self.datas[1])
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Pairs Trading Backtest')
-    parser.add_argument('--tickers', nargs=2, default=['GOOGL', 'MSFT'], help='A pair of tickers to trade')
-    parser.add_argument('--start', default='2020-01-01', help='Start date in YYYY-MM-DD format')
-    parser.add_argument('--end', default='2023-12-31', help='End date in YYYY-MM-DD format')
-    args = parser.parse_args()
-
-    all_data = fetch_data(args.tickers, args.start, args.end)
+def run_backtest(tickers, start_date, end_date):
+    """Runs the pairs trading backtest and returns the results as a dictionary."""
+    all_data = fetch_data(tickers, start_date, end_date)
     
     if all_data is not None and len(all_data.columns) == 2:
-        series1, series2 = all_data[args.tickers[0]], all_data[args.tickers[1]]
+        series1, series2 = all_data[tickers[0]], all_data[tickers[1]]
         spread, hedge_ratio = calculate_spread(series1, series2)
         
         cerebro = bt.Cerebro()
@@ -87,10 +82,22 @@ if __name__ == "__main__":
         sharpe = analysis.sharpe_ratio.get_analysis()['sharperatio']
         
         output = {
-            "tickers": args.tickers, "start_date": args.start, "end_date": args.end,
+            "tickers": tickers, "start_date": start_date, "end_date": end_date,
             "initial_portfolio": 100000.0, "final_portfolio": round(final_portfolio_value, 2),
             "total_return_pct": round(analysis.returns.get_analysis()['rtot'] * 100, 2),
             "sharpe_ratio": round(sharpe, 3) if sharpe is not None else "N/A",
             "max_drawdown_pct": round(analysis.drawdown.get_analysis()['max']['drawdown'], 2)
         }
-        print(json.dumps(output, indent=4))
+        return output
+    else:
+        return {"error": "Failed to fetch data"}
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Pairs Trading Backtest')
+    parser.add_argument('--tickers', nargs=2, default=['GOOGL', 'MSFT'], help='A pair of tickers to trade')
+    parser.add_argument('--start', default='2020-01-01', help='Start date in YYYY-MM-DD format')
+    parser.add_argument('--end', default='2023-12-31', help='End date in YYYY-MM-DD format')
+    args = parser.parse_args()
+
+    output = run_backtest(args.tickers, args.start, args.end)
+    print(json.dumps(output, indent=4))

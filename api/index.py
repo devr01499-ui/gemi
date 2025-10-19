@@ -1,6 +1,8 @@
-import subprocess
-import json
 import sys
+import os
+sys.path.append(os.path.dirname(__file__))
+
+from backend.services.pairs_trade_backtest import run_backtest
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
@@ -42,40 +44,9 @@ async def run_pairs_backtest(request: BacktestRequest):
     Executes the pairs trading backtest script with user-defined parameters.
     """
     try:
-        python_executable = sys.executable
-        script_path = "backend/services/pairs_trade_backtest.py"
-
-        command = [
-            python_executable,
-            script_path,
-            "--tickers", request.tickers[0], request.tickers[1],
-            "--start", request.start_date,
-            "--end", request.end_date
-        ]
-
-        process = subprocess.Popen(
-            command,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True
-        )
-
-        stdout, stderr = process.communicate()
-
-        if process.returncode != 0:
-            raise HTTPException(
-                status_code=500,
-                detail=f"Backtest script failed: {stderr}"
-            )
-
-        json_output_str = stdout[stdout.find('{'):]
-        results = json.loads(json_output_str)
+        results = run_backtest(request.tickers, request.start_date, request.end_date)
+        if "error" in results:
+            raise HTTPException(status_code=500, detail=results["error"])
         return results
-
-    except json.JSONDecodeError:
-        raise HTTPException(
-            status_code=500,
-            detail="Failed to parse JSON output from the backtest script."
-        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
