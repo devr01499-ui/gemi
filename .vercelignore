@@ -24,4 +24,10 @@ __pycache__/
 Thumbs.db
 
 # Exclude documentation if not needed in deployment
-# README.md  # Uncomment if you want to exclude README from deployment
+README.md
+
+# Exclude backend directory as it's imported in api/index.py
+backend/
+
+# Exclude TODO.md
+TODO.md

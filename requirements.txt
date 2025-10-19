@@ -11,3 +11,7 @@ yfinance==0.2.28
 
 # --- Utilities ---
 python-dotenv==1.0.0
+
+# --- Lightweight alternatives for data processing ---
+polars==0.20.15  # Faster, more memory-efficient than pandas
+numba==0.59.0    # JIT compilation for numpy operations

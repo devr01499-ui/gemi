@@ -3,6 +3,28 @@ import pandas as pd
 import statsmodels.api as sm
 import json
 import argparse
+import numpy as np
+from numba import jit
+
+@jit(nopython=True)
+def backtest_loop(zscore_values, lookback, entry_threshold, exit_threshold):
+    """Optimized backtest loop using numba for performance."""
+    position = 0
+    trades = []
+    for i in range(lookback, len(zscore_values)):
+        current_zscore = zscore_values[i]
+        if position == 0:
+            if current_zscore > entry_threshold:
+                position = -1
+                trades.append(('entry', i, current_zscore))
+            elif current_zscore < -entry_threshold:
+                position = 1
+                trades.append(('entry', i, current_zscore))
+        else:
+            if abs(current_zscore) < exit_threshold:
+                trades.append(('exit', i, current_zscore))
+                position = 0
+    return trades
 
 def fetch_data(tickers, start_date, end_date):
     """Fetches daily adjusted close prices for a list of tickers."""
@@ -46,20 +68,9 @@ def run_backtest(tickers, start_date, end_date):
         cash = 100000.0
         trades = []
 
-        for i in range(lookback, len(zscore)):
-            current_zscore = zscore.iloc[i]
-
-            if position == 0:
-                if current_zscore > entry_threshold:
-                    position = -1  # Short series1, long series2
-                    trades.append(('entry', i, current_zscore))
-                elif current_zscore < -entry_threshold:
-                    position = 1   # Long series1, short series2
-                    trades.append(('entry', i, current_zscore))
-            else:
-                if abs(current_zscore) < exit_threshold:
-                    trades.append(('exit', i, current_zscore))
-                    position = 0
+        # Optimized backtest loop using numba for performance
+        zscore_values = zscore.values
+        trades = backtest_loop(zscore_values, lookback, entry_threshold, exit_threshold)
 
         # Calculate simple returns (simplified)
         total_return = (len(trades) // 2) * 0.02  # Assume 2% per round trip
